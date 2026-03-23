@@ -2,65 +2,53 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>THE GRAND ESTATE | LUXURY PENTHOUSE</title>
+    <title>THE GRAND GALLERY | V28.0 REFLECTIONS</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #d4af37; --glass: rgba(255, 255, 255, 0.1); }
-        body { margin: 0; background: #fff; color: #000; font-family: 'Inter', sans-serif; overflow: hidden; }
+        :root { --gold: #d4af37; }
+        body { margin: 0; background: #000; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
         
-        /* OVERLAY UI */
         #top-bar {
             position: absolute; top: 0; width: 100%; height: 60px;
-            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px);
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 40px; z-index: 100; border-bottom: 1px solid #eee; box-sizing: border-box;
+            padding: 0 40px; z-index: 100; border-bottom: 1px solid #ddd; box-sizing: border-box;
         }
-        #search-input { background: #f5f5f5; border: 1px solid #ddd; padding: 8px 15px; width: 250px; border-radius: 4px; }
-        .nav-link { color: #666; font-weight: 600; font-size: 11px; margin-right: 25px; cursor: pointer; text-transform: uppercase; border:none; background:none; }
-        .nav-link.active { color: var(--gold); }
+        .nav-link { color: #222; font-weight: 600; font-size: 11px; margin-right: 25px; cursor: pointer; text-transform: uppercase; border: none; background: none; }
+        .nav-link.active { color: var(--gold); border-bottom: 2px solid var(--gold); }
+        #audio-toggle { background: #000; color: #fff; border: none; padding: 5px 15px; border-radius: 20px; font-size: 10px; cursor: pointer; }
 
-        /* MINI MAP */
-        #mini-map { 
-            position: absolute; bottom: 30px; left: 30px; width: 150px; height: 150px; 
-            background: #fff; border: 1px solid #ddd; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        }
-        #player-marker { position: absolute; width: 8px; height: 8px; background: var(--gold); border-radius: 50%; }
-
-        /* ART HUD */
         #art-hud { 
-            position: absolute; bottom: 40px; right: 40px; width: 300px;
-            background: #fff; color: #000; padding: 25px; border-radius: 8px;
-            display: none; z-index: 150; box-shadow: 0 30px 60px rgba(0,0,0,0.1); border: 1px solid #eee;
+            position: absolute; bottom: 40px; right: 40px; width: 320px;
+            background: #fff; color: #000; padding: 25px; border-radius: 12px;
+            display: none; z-index: 150; box-shadow: 0 30px 60px rgba(0,0,0,0.3);
         }
 
-        #intro { position: absolute; inset: 0; z-index: 200; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #intro { position: absolute; inset: 0; z-index: 200; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #000; }
     </style>
 </head>
 <body>
 
     <div id="intro">
-        <h1 style="font-family:'Playfair Display'; font-size: 45px; color: #000; margin: 0;">THE GRAND ESTATE</h1>
-        <p style="color: #888; letter-spacing: 5px; margin-bottom: 30px;">PRIVATE DIGITAL ARCHIVE</p>
-        <button onclick="enterGallery()" style="padding:15px 50px; background:#000; color:#fff; border:none; cursor:pointer; font-weight:bold;">ENTER THE WING</button>
-        <a href="https://www.paypal.com/ncp/payment/LNBQUTN8VL52U" target="_blank" style="margin-top: 20px; color: var(--gold); font-size: 12px; font-weight: bold;">DONATE TO ARCHIVE</a>
+        <h1 style="font-family:'Playfair Display'; font-size: 50px; margin: 0;">THE GRAND HALL</h1>
+        <p style="color: #888; letter-spacing: 8px; margin-bottom: 40px;">PRIVATE ARCHIVE V28.0</p>
+        <button onclick="enterGallery()" style="padding:15px 60px; background:#000; color:#fff; border:none; cursor:pointer; font-weight:bold;">ENTER THE VOID</button>
     </div>
 
     <div id="top-bar">
         <div>
-            <button class="nav-link active" onclick="loadContent('masterpiece')">Featured</button>
-            <button class="nav-link" onclick="loadContent('renaissance')">Renaissance</button>
-            <button class="nav-link" onclick="loadContent('modern')">Modern Art</button>
+            <button class="nav-link active" onclick="loadContent('impressionism', this)">Impressionism</button>
+            <button class="nav-link" onclick="loadContent('renaissance', this)">Renaissance</button>
+            <button class="nav-link" onclick="loadContent('modernism', this)">Modernism</button>
+            <button id="audio-toggle" onclick="toggleAudio()">SOUND: OFF</button>
         </div>
-        <input type="text" id="search-input" placeholder="Search collection..." onkeypress="if(event.key==='Enter') loadContent(this.value)">
+        <input type="text" id="search-input" placeholder="Search archives..." style="padding:8px; border:1px solid #ddd; width:220px;" onkeypress="if(event.key==='Enter') loadContent(this.value)">
     </div>
 
-    <div id="mini-map"><div id="player-marker"></div></div>
-
     <div id="art-hud">
-        <h2 id="hud-artist" style="margin:0; font-family:'Playfair Display'; font-size: 18px;"></h2>
+        <h2 id="hud-artist" style="margin:0; font-family:'Playfair Display'; font-size: 20px;"></h2>
         <p id="hud-title" style="font-style:italic; color:#777; font-size: 14px; margin-top: 5px;"></p>
-        <p style="font-size: 10px; color: #aaa; margin-top: 15px;">SCROLL TO ZOOM • [E] TO EXIT</p>
-        <button onclick="exitFocus()" style="width:100%; margin-top:15px; padding:10px; background:#f9f9f9; border:1px solid #eee; cursor:pointer;">CLOSE VIEW</button>
+        <button onclick="exitFocus()" style="width:100%; margin-top:20px; padding:12px; background:#000; color:#fff; border:none; cursor:pointer; font-weight:bold;">BACK TO GALLERY</button>
     </div>
 
     <script type="importmap"> { "imports": { "three": "https://unpkg.com/three@0.162.0/build/three.module.js" } } </script>
@@ -69,100 +57,117 @@
         import * as THREE from 'three';
 
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xf0f0f5); // Bright Skybox
-        scene.fog = new THREE.Fog(0xf0f0f5, 10, 80);
-        
+        scene.background = new THREE.Color(0x050505);
+        scene.fog = new THREE.Fog(0x050505, 10, 100);
+
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 1.8, 10);
+        camera.position.set(0, 1.7, 5);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.0;
         document.body.appendChild(renderer.domElement);
 
-        // --- BRIGHT LIGHTING ---
-        const ambient = new THREE.AmbientLight(0xffffff, 1.2);
-        scene.add(ambient);
-        const sun = new THREE.DirectionalLight(0xffffff, 1.0);
-        sun.position.set(10, 20, 10);
-        scene.add(sun);
-
-        // --- ARCHITECTURE (THE PENTHOUSE) ---
-        // Polished White Floor
-        const floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 1000), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1, metalness: 0.2 }));
-        floor.rotation.x = -Math.PI/2;
+        // --- THE REFLECTIVE HALL ---
+        // Glossy Floor
+        const floorGeo = new THREE.PlaneGeometry(30, 1000);
+        const floorMat = new THREE.MeshStandardMaterial({ 
+            color: 0x111111, 
+            roughness: 0.05, 
+            metalness: 0.6 
+        });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.rotation.x = -Math.PI / 2;
         scene.add(floor);
 
-        // Glass Wall Wing
-        const glassMat = new THREE.MeshStandardMaterial({ color: 0x88ccff, transparent: true, opacity: 0.1, metalness: 1, roughness: 0 });
-        const glass = new THREE.Mesh(new THREE.PlaneGeometry(1000, 20), glassMat);
-        glass.position.set(-12, 10, -500); glass.rotation.y = Math.PI/2;
-        scene.add(glass);
+        // Ceiling with light strip
+        const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(30, 1000), new THREE.MeshStandardMaterial({ color: 0x0a0a0a }));
+        ceiling.position.y = 10;
+        ceiling.rotation.x = Math.PI / 2;
+        scene.add(ceiling);
 
-        // Art Wall
-        const wall = new THREE.Mesh(new THREE.PlaneGeometry(1000, 20), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-        wall.position.set(12, 10, -500); wall.rotation.y = -Math.PI/2;
-        scene.add(wall);
+        // Walls
+        const wallMat = new THREE.MeshStandardMaterial({ color: 0x080808 });
+        const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(1000, 15), wallMat);
+        leftWall.position.set(-15, 5, -450); leftWall.rotation.y = Math.PI / 2;
+        scene.add(leftWall);
+
+        const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(1000, 15), wallMat);
+        rightWall.position.set(15, 5, -450); rightWall.rotation.y = -Math.PI / 2;
+        scene.add(rightWall);
+
+        // --- DYNAMIC LIGHTING ---
+        const amb = new THREE.AmbientLight(0xffffff, 0.1);
+        scene.add(amb);
 
         // --- ART SYSTEM ---
-        let artObjects = [];
+        let artworks = [];
         const loader = new THREE.TextureLoader();
 
-        window.loadContent = async (q) => {
-            artObjects.forEach(obj => scene.remove(obj));
-            artObjects = [];
-            const res = await fetch(`https://api.artic.edu/api/v1/artworks/search?q=${q}&limit=20&fields=id,title,artist_display,image_id`);
+        window.loadContent = async (query, btn) => {
+            if(btn) {
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                btn.classList.add('active');
+            }
+            artworks.forEach(a => {
+                scene.remove(a);
+                if(a.light) scene.remove(a.light);
+            });
+            artworks = [];
+
+            const res = await fetch(`https://api.artic.edu/api/v1/artworks/search?q=${query}&limit=16&fields=title,artist_display,image_id`);
             const data = await res.json();
-            
+
             data.data.forEach((item, i) => {
-                if (!item.image_id) return;
+                if(!item.image_id) return;
                 loader.load(`https://www.artic.edu/iiif/2/${item.image_id}/full/843,/0/default.jpg`, (tex) => {
                     const group = new THREE.Group();
-                    const h = 4.5; const w = h * (tex.image.width / tex.image.height);
-                    
-                    const canvas = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map: tex }));
+                    const aspect = tex.image.width / tex.image.height;
+                    const h = 4; const w = h * aspect;
+
+                    const canvas = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map: tex, emissive: 0xffffff, emissiveIntensity: 0.1 }));
                     group.add(canvas);
-                    
-                    const frame = new THREE.Mesh(new THREE.BoxGeometry(w+0.3, h+0.3, 0.1), new THREE.MeshStandardMaterial({ color: 0x333333 }));
+
+                    const frame = new THREE.Mesh(new THREE.BoxGeometry(w+0.2, h+0.2, 0.1), new THREE.MeshStandardMaterial({ color: 0x000000, metalness: 1, roughness: 0 }));
                     frame.position.z = -0.06;
                     group.add(frame);
 
-                    group.position.set(11.9, 4.5, -i * 15 - 10);
-                    group.rotation.y = -Math.PI/2;
+                    const side = i % 2 === 0 ? 1 : -1;
+                    group.position.set(14.9 * side, 4, -i * 15 - 10);
+                    group.rotation.y = (Math.PI / 2) * -side;
                     group.userData = { artist: item.artist_display, title: item.title };
+
+                    // Local Spotlight
+                    const spot = new THREE.SpotLight(0xffffff, 20, 20, 0.4, 0.5);
+                    spot.position.set(10 * side, 8, group.position.z);
+                    spot.target = group;
+                    scene.add(spot);
+                    group.light = spot;
+
                     scene.add(group);
-                    artObjects.push(group);
+                    artworks.push(group);
                 });
             });
         };
-        loadContent('masterpiece');
 
-        // --- NAVIGATION & ZOOM ---
+        // --- CONTROLS ---
         let keys = {}; let isFocused = false;
-        let pitch = 0, yaw = 0, zoomDist = 5;
+        let yaw = 0, pitch = 0;
         let activeArt = null;
 
-        window.enterGallery = () => { document.getElementById('intro').style.display = 'none'; renderer.domElement.requestPointerLock(); };
+        window.enterGallery = () => { document.getElementById('intro').style.display = 'none'; loadContent('masterpiece'); renderer.domElement.requestPointerLock(); };
 
         document.addEventListener('keydown', (e) => { 
-            keys[e.code] = true; 
+            keys[e.code] = true;
             if(e.code === 'KeyE' && isFocused) exitFocus();
         });
         document.addEventListener('keyup', (e) => keys[e.code] = false);
-
-        document.addEventListener('wheel', (e) => {
-            if(isFocused) {
-                zoomDist += e.deltaY * 0.005;
-                zoomDist = Math.max(1.5, Math.min(6, zoomDist));
-            }
-        });
 
         document.addEventListener('mousemove', (e) => {
             if(document.pointerLockElement === renderer.domElement && !isFocused) {
                 yaw -= e.movementX * 0.002;
                 pitch -= e.movementY * 0.002;
-                pitch = Math.max(-1.1, Math.min(1.1, pitch));
+                pitch = Math.max(-1, Math.min(1, pitch));
             }
         });
 
@@ -170,10 +175,10 @@
             if(isFocused) return;
             const ray = new THREE.Raycaster();
             ray.setFromCamera(new THREE.Vector2(0,0), camera);
-            const hits = ray.intersectObjects(artObjects, true);
+            const hits = ray.intersectObjects(artworks, true);
             if(hits.length > 0) {
                 activeArt = hits[0].object.parent;
-                isFocused = true; zoomDist = 5;
+                isFocused = true;
                 document.exitPointerLock();
                 document.getElementById('art-hud').style.display = 'block';
                 document.getElementById('hud-artist').innerText = activeArt.userData.artist;
@@ -183,26 +188,26 @@
 
         window.exitFocus = () => { isFocused = false; document.getElementById('art-hud').style.display = 'none'; renderer.domElement.requestPointerLock(); };
 
+        // --- AUDIO ---
+        const audio = new Audio('https://www.soundjay.com/ambient/sounds/ambience-museum-1.mp3');
+        audio.loop = true;
+        window.toggleAudio = () => {
+            if(audio.paused) { audio.play(); document.getElementById('audio-toggle').innerText = "SOUND: ON"; }
+            else { audio.pause(); document.getElementById('audio-toggle').innerText = "SOUND: OFF"; }
+        };
+
         function animate() {
             requestAnimationFrame(animate);
             if(!isFocused && document.pointerLockElement === renderer.domElement) {
                 camera.rotation.set(pitch, yaw, 0, 'YXZ');
-                const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
+                const dir = new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);
                 dir.y = 0; dir.normalize();
-                const side = new THREE.Vector3().crossVectors(new THREE.Vector3(0,1,0), dir);
-                const spd = 0.15;
-                if(keys['KeyW']) camera.position.addScaledVector(dir, spd);
-                if(keys['KeyS']) camera.position.addScaledVector(dir, -spd);
-                if(keys['KeyA']) camera.position.addScaledVector(side, spd);
-                if(keys['KeyD']) camera.position.addScaledVector(side, -spd);
-                
-                // Map
-                const marker = document.getElementById('player-marker');
-                marker.style.left = (camera.position.x * 5 + 75) + "px";
-                marker.style.top = (-camera.position.z * 0.5 + 75) + "px";
-            } else if (isFocused && activeArt) {
-                const viewPos = new THREE.Vector3(activeArt.position.x - zoomDist, 4.5, activeArt.position.z);
-                camera.position.lerp(viewPos, 0.1);
+                if(keys['KeyW']) camera.position.addScaledVector(dir, 0.15);
+                if(keys['KeyS']) camera.position.addScaledVector(dir, -0.15);
+            } else if(isFocused && activeArt) {
+                const offset = activeArt.position.x > 0 ? -4 : 4;
+                const target = new THREE.Vector3(activeArt.position.x + offset, 4, activeArt.position.z);
+                camera.position.lerp(target, 0.08);
                 camera.lookAt(activeArt.position);
             }
             renderer.render(scene, camera);
