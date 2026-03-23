@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE GRAND ESTATE | PRIVATE COLLECTION</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #c5a059; --oak: #1a1510; --marble: #f4f1ea; }
+        body { margin: 0; background: var(--oak); color: var(--marble); font-family: 'Inter', sans-serif; overflow: hidden; }
+        
+        /* Header - Minimalist Old Money */
+        #gallery-header {
+            position: absolute;
+            top: 40px; width: 100%;
+            text-align: center;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            font-family: 'Playfair Display', serif;
+            z-index: 10;
+        }
+
+        /* Art Description - The "Marble Plaque" */
+        #plaque {
+            position: absolute;
+            bottom: 50px; left: 50%;
+            transform: translateX(-50%);
+            background: var(--marble);
+            color: #111;
+            padding: 25px 40px;
+            width: 350px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            opacity: 0;
+            transition: 0.8s transform cubic-bezier(0.19, 1, 0.22, 1), 0.8s opacity;
+            text-align: center;
+        }
+        #plaque.visible { opacity: 1; transform: translateX(-50%) translateY(-20px); }
+        #plaque h2 { font-family: 'Playfair Display', serif; margin: 0 0 10px 0; font-size: 22px; }
+        #plaque p { font-size: 12px; font-style: italic; color: #555; margin: 0; line-height: 1.5; }
+
+        /* The Sponsor - Subtle Gilt */
+        .patron-credit {
+            position: fixed;
+            bottom: 30px; right: 40px;
+            font-family: 'Playfair Display', serif;
+            font-size: 11px;
+            color: var(--gold);
+            text-decoration: none;
+            border-bottom: 1px solid var(--gold);
+            padding-bottom: 5px;
+        }
+
+        #loader {
+            position: fixed; inset: 0; background: var(--oak);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 100; font-family: 'Playfair Display', serif; font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader">Arranging the Collection...</div>
+
+    <div id="gallery-header">
+        <h1 style="font-size: 18px; font-weight: 400;">The Private Archive</h1>
+    </div>
+
+    <div id="plaque">
+        <h2 id="art-title"></h2>
+        <p id="art-meta"></p>
+    </div>
+
+    <a href="#" class="patron-credit">Patronage: Secure Infrastructure Group</a>
+
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+
+        // 1. SCENE SETUP
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0806);
+        scene.fog = new THREE.Fog(0x0a0806, 2, 15);
+        
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        // 2. THE COLLECTION (Verified High-Res CC0 Images)
+        const collection = [
+            { 
+                url: 'https://api.nga.gov/iiif/3006817b-0597-400a-9d93-3796d8882006/full/!1000,1000/0/default.jpg',
+                title: 'The Cornell Farm',
+                meta: 'Edward Hicks, 1848. A masterwork of American folk art, emphasizing pastoral order and legacy.',
+                pos: [0, 0.5, -5]
+            },
+            {
+                url: 'https://api.nga.gov/iiif/1000755a-4934-445a-9b48-356c9a3d6d02/full/!1000,1000/0/default.jpg',
+                title: 'The Skater',
+                meta: 'Gilbert Stuart, 1782. Captured in London, this portrait defined the elegance of the late 18th century.',
+                pos: [-6, 0.5, -3]
+            },
+            {
+                url: 'https://api.nga.gov/iiif/68494b5f-5ca1-4091-8848-26f632d43105/full/!1000,1000/0/default.jpg',
+                title: 'Vesuvius in Eruption',
+                meta: 'Johan Christian Dahl, 1826. Representing the sublime power of nature against the silence of history.',
+                pos: [6, 0.5, -3]
+            }
+        ];
+
+        // 3. BUILDING THE ROOM
+        const loader = new THREE.TextureLoader();
+        
+        collection.forEach(item => {
+            loader.load(item.url, (texture) => {
+                const aspect = texture.image.width / texture.image.height;
+                const h = 3;
+                const w = h * aspect;
+
+                // Gold Frame
+                const frameGeo = new THREE.BoxGeometry(w + 0.2, h + 0.2, 0.1);
+                const frameMat = new THREE.MeshStandardMaterial({ color: 0x8a6d3b, metalness: 0.8, roughness: 0.2 });
+                const frame = new THREE.Mesh(frameGeo, frameMat);
+                frame.position.set(item.pos[0], item.pos[1], item.pos[2] - 0.05);
+                scene.add(frame);
+
+                // Canvas
+                const canvasGeo = new THREE.PlaneGeometry(w, h);
+                const canvasMat = new THREE.MeshStandardMaterial({ map: texture });
+                const canvas = new THREE.Mesh(canvasGeo, canvasMat);
+                canvas.position.set(...item.pos);
+                canvas.userData = item;
+                scene.add(canvas);
+
+                // Individual warm light for each piece
+                const light = new THREE.SpotLight(0xfff5e6, 20);
+                light.position.set(item.pos[0], 4, item.pos[2] + 3);
+                light.target = canvas;
+                light.angle = Math.PI / 6;
+                scene.add(light);
+            });
+        });
+
+        // Floor (Polished Marble)
+        const floorGeo = new THREE.PlaneGeometry(50, 50);
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1, metalness: 0.5 });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = -2;
+        scene.add(floor);
+
+        // 4. NAVIGATION
+        camera.position.z = 8;
+        let mouse = new THREE.Vector2();
+        let targetX = 0, targetY = 0;
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            targetX = mouse.x * 2;
+            targetY = mouse.y * 0.5;
+
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(mouse, camera);
+            const hits = raycaster.intersectObjects(scene.children);
+            
+            const plaque = document.getElementById('plaque');
+            if (hits.length > 0 && hits[0].object.userData.title) {
+                plaque.classList.add('visible');
+                document.getElementById('art-title').innerText = hits[0].object.userData.title;
+                document.getElementById('art-meta').innerText = hits[0].object.userData.meta;
+            } else {
+                plaque.classList.remove('visible');
+            }
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            camera.position.x += (targetX - camera.position.x) * 0.02;
+            camera.position.y += (targetY - camera.position.y) * 0.02;
+            camera.lookAt(0, 0, -3);
+            renderer.render(scene, camera);
+        }
+
+        window.onload = () => {
+            document.getElementById('loader').style.display = 'none';
+            animate();
+        };
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
