@@ -2,53 +2,43 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>THE GRAND ESTATE | WALKTHROUGH</title>
+    <title>THE GRAND ESTATE | INFINITE HALL</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #c5a059; --bg: #050505; }
-        body { margin: 0; background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
+        :root { --gold: #c5a059; --wall: #f4f1ea; --floor: #111; }
+        body { margin: 0; background: #000; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
         
-        #search-container {
-            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            z-index: 100; width: 300px; opacity: 0.8; transition: 0.3s;
-        }
-        #search-container:hover { opacity: 1; }
-        #search-input {
-            width: 100%; padding: 12px 20px; border-radius: 5px;
-            background: rgba(0,0,0,0.8); border: 1px solid var(--gold);
-            color: white; font-size: 13px; outline: none;
-        }
-
+        /* UI OVERLAYS */
+        #ui-layer { position: absolute; inset: 0; pointer-events: none; z-index: 100; }
+        #crosshair { position: absolute; top: 50%; left: 50%; width: 4px; height: 4px; background: var(--gold); border-radius: 50%; transform: translate(-50%, -50%); border: 1px solid #fff; }
+        
         #plaque { 
-            position: absolute; bottom: 40px; left: 40px; 
-            background: #fff; color: #111; padding: 25px; width: 320px; 
-            display: none; border-left: 5px solid var(--gold);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5); z-index: 100;
+            position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
+            background: #fff; color: #111; padding: 30px; width: 400px; 
+            display: none; border-top: 5px solid var(--gold); pointer-events: auto;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.6);
         }
-        .artist { font-family: 'Playfair Display'; font-size: 18px; font-weight: 700; }
-        .title { font-style: italic; color: #666; font-size: 13px; margin-bottom: 8px; }
 
-        #instructions {
-            position: fixed; bottom: 20px; right: 20px;
-            font-size: 10px; color: var(--gold); letter-spacing: 2px;
-            background: rgba(0,0,0,0.6); padding: 10px; border: 1px solid var(--gold);
-        }
+        #search-box { position: absolute; top: 30px; left: 30px; pointer-events: auto; }
+        input { background: rgba(0,0,0,0.7); border: 1px solid var(--gold); color: #fff; padding: 10px; width: 250px; outline: none; }
+
+        #instructions { position: absolute; bottom: 20px; right: 30px; font-size: 11px; color: var(--gold); letter-spacing: 2px; }
     </style>
 </head>
 <body>
 
-    <div id="search-container">
-        <input type="text" id="search-input" placeholder="SEARCH COLLECTION...">
+    <div id="ui-layer">
+        <div id="crosshair"></div>
+        <div id="search-box">
+            <input type="text" id="search-input" placeholder="SEARCH ARCHIVE (e.g. Picasso)">
+        </div>
+        <div id="plaque">
+            <h2 id="artist" style="margin:0; font-family:'Playfair Display';"></h2>
+            <p id="title" style="font-style:italic; color:#666;"></p>
+            <button onclick="exitFocus()" style="background:var(--gold); border:none; padding:10px 20px; cursor:pointer; font-weight:bold; width:100%;">BACK TO GALLERY</button>
+        </div>
+        <div id="instructions">WASD to Walk | Mouse to Look | Click Art to Inspect</div>
     </div>
-
-    <div id="plaque">
-        <div id="artist" class="artist"></div>
-        <div id="title" class="title"></div>
-        <div id="desc" style="font-size: 11px; line-height: 1.5;"></div>
-        <button onclick="exitFocus()" style="margin-top:15px; cursor:pointer; background:var(--gold); border:none; padding:5px 10px; font-size:10px;">EXIT FOCUS</button>
-    </div>
-
-    <div id="instructions">WASD: MOVE | MOUSE: LOOK | CLICK ART: FOCUS</div>
 
     <script type="importmap">
         { "imports": { "three": "https://unpkg.com/three@0.162.0/build/three.module.js" } }
@@ -57,37 +47,57 @@
     <script type="module">
         import * as THREE from 'three';
 
-        // 1. SCENE & CAMERA
+        // --- CORE SETUP ---
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x050505);
-        scene.fog = new THREE.Fog(0x050505, 1, 45);
-
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 1.7, 10); // Human height
+        scene.background = new THREE.Color(0x0a0a0a);
+        
+        const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 1.7, 5);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
         document.body.appendChild(renderer.domElement);
 
-        // 2. REAL ROOM DESIGN (Marble Floor & Lighting)
-        const amb = new THREE.AmbientLight(0xffffff, 0.4);
-        scene.add(amb);
+        // --- THE ROOM (REAL WALLS & FLOOR) ---
+        const wallMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 });
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.05, metalness: 0.9 });
 
-        const floorGeo = new THREE.PlaneGeometry(200, 200);
-        const floorMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.05, metalness: 0.8 });
-        const floor = new THREE.Mesh(floorGeo, floorMat);
+        // Floor
+        const floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 500), floorMat);
         floor.rotation.x = -Math.PI / 2;
         scene.add(floor);
 
-        // 3. ART LOADING ENGINE
+        // Ceiling
+        const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(20, 500), wallMat);
+        ceiling.rotation.x = Math.PI / 2;
+        ceiling.position.y = 5;
+        scene.add(ceiling);
+
+        // Walls
+        const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(500, 5), wallMat);
+        leftWall.position.set(-8, 2.5, -100);
+        leftWall.rotation.y = Math.PI / 2;
+        scene.add(leftWall);
+
+        const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(500, 5), wallMat);
+        rightWall.position.set(8, 2.5, -100);
+        rightWall.rotation.y = -Math.PI / 2;
+        scene.add(rightWall);
+
+        // Lights
+        const amb = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(amb);
+
+        // --- ART ENGINE ---
         let artObjects = [];
         const loader = new THREE.TextureLoader();
 
-        async function loadGallery(query = 'renaissance') {
-            const res = await fetch(`https://api.artic.edu/api/v1/artworks/search?q=${query}&limit=24&fields=id,title,artist_display,image_id`);
+        async function populateGallery(query = 'painting') {
+            const res = await fetch(`https://api.artic.edu/api/v1/artworks/search?q=${query}&limit=30&fields=id,title,artist_display,image_id`);
             const data = await res.json();
             
-            artObjects.forEach(obj => scene.remove(obj));
+            artObjects.forEach(a => scene.remove(a));
             artObjects = [];
 
             data.data.forEach((item, i) => {
@@ -96,76 +106,64 @@
                 
                 loader.load(url, (tex) => {
                     const group = new THREE.Group();
-                    
-                    // Canvas
-                    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(4, 5), new THREE.MeshStandardMaterial({ map: tex }));
-                    group.add(mesh);
+                    const aspect = tex.image.width / tex.image.height;
+                    const h = 3; const w = h * aspect;
 
-                    // Frame
-                    const frame = new THREE.Mesh(new THREE.BoxGeometry(4.2, 5.2, 0.2), new THREE.MeshStandardMaterial({ color: 0x1a1a1a }));
-                    frame.position.z = -0.15;
+                    const canvas = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map: tex }));
+                    group.add(canvas);
+
+                    const frame = new THREE.Mesh(new THREE.BoxGeometry(w + 0.2, h + 0.2, 0.1), new THREE.MeshStandardMaterial({ color: 0x000000 }));
+                    frame.position.z = -0.06;
                     group.add(frame);
 
-                    // Positioning in a long hall
-                    const side = i % 2 === 0 ? -6 : 6;
-                    const zPos = -Math.floor(i / 2) * 8;
-                    group.position.set(side, 2.5, zPos);
-                    group.rotation.y = side > 0 ? -Math.PI/2 : Math.PI/2;
+                    const side = i % 2 === 0 ? -7.9 : 7.9;
+                    group.position.set(side, 2.5, -i * 6);
+                    group.rotation.y = side < 0 ? Math.PI/2 : -Math.PI/2;
                     
-                    group.userData = { artist: item.artist_display, title: item.title, desc: "Permanent Archive Selection." };
-                    
+                    group.userData = { artist: item.artist_display, title: item.title };
                     scene.add(group);
                     artObjects.push(group);
                 });
             });
         }
+        populateGallery();
 
-        loadGallery();
-
-        // 4. FIRST PERSON NAVIGATION
-        let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
-        let yaw = 0, pitch = 0;
+        // --- MOVEMENT ENGINE (FLUID) ---
+        let keys = {};
         let isFocused = false;
+        let pitch = 0, yaw = 0;
 
-        document.addEventListener('keydown', (e) => {
-            if(e.code === 'KeyW') moveForward = true;
-            if(e.code === 'KeyS') moveBackward = true;
-            if(e.code === 'KeyA') moveLeft = true;
-            if(e.code === 'KeyD') moveRight = true;
-        });
-        document.addEventListener('keyup', (e) => {
-            if(e.code === 'KeyW') moveForward = false;
-            if(e.code === 'KeyS') moveBackward = false;
-            if(e.code === 'KeyA') moveLeft = false;
-            if(e.code === 'KeyD') moveRight = false;
+        document.addEventListener('keydown', (e) => keys[e.code] = true);
+        document.addEventListener('keyup', (e) => keys[e.code] = false);
+
+        renderer.domElement.addEventListener('click', () => {
+            if (!isFocused) renderer.domElement.requestPointerLock();
         });
 
-        window.addEventListener('mousemove', (e) => {
+        document.addEventListener('mousemove', (e) => {
+            if (document.pointerLockElement === renderer.domElement && !isFocused) {
+                yaw -= e.movementX * 0.002;
+                pitch -= e.movementY * 0.002;
+                pitch = Math.max(-Math.PI/2.2, Math.min(Math.PI/2.2, pitch));
+            }
+        });
+
+        // Click Art to Focus
+        window.addEventListener('mousedown', () => {
             if (isFocused) return;
-            yaw -= e.movementX * 0.002;
-            pitch -= e.movementY * 0.002;
-            pitch = Math.max(-Math.PI/3, Math.min(Math.PI/3, pitch));
-        });
-
-        // FOCUS MODE LOGIC
-        const raycaster = new THREE.Raycaster();
-        window.addEventListener('click', () => {
-            if (isFocused) return;
-            const mouse = new THREE.Vector2(0, 0); // Center screen
-            raycaster.setFromCamera(mouse, camera);
-            const hits = raycaster.intersectObjects(scene.children, true);
-
+            const ray = new THREE.Raycaster();
+            ray.setFromCamera(new THREE.Vector2(0,0), camera);
+            const hits = ray.intersectObjects(artObjects, true);
             if (hits.length > 0) {
                 const target = hits[0].object.parent;
-                if (target.userData.title) {
-                    isFocused = true;
-                    showPlaque(target.userData);
-                    // Move camera to front of painting
-                    const offset = new THREE.Vector3(0, 0, 4).applyQuaternion(target.quaternion);
-                    const finalPos = target.position.clone().add(offset);
-                    camera.position.copy(finalPos);
-                    camera.lookAt(target.position);
-                }
+                isFocused = true;
+                document.exitPointerLock();
+                showPlaque(target.userData);
+                
+                // Move Cam
+                const dir = new THREE.Vector3(0,0,3.5).applyQuaternion(target.quaternion);
+                camera.position.copy(target.position).add(dir);
+                camera.lookAt(target.position);
             }
         });
 
@@ -174,40 +172,34 @@
             document.getElementById('plaque').style.display = 'none';
         };
 
-        function showPlaque(data) {
-            const p = document.getElementById('plaque');
-            p.style.display = 'block';
-            document.getElementById('artist').innerText = data.artist;
-            document.getElementById('title').innerText = data.title;
+        function showPlaque(d) {
+            document.getElementById('plaque').style.display = 'block';
+            document.getElementById('artist').innerText = d.artist;
+            document.getElementById('title').innerText = d.title;
         }
 
         function animate() {
             requestAnimationFrame(animate);
-            if (!isFocused) {
+            if (!isFocused && document.pointerLockElement === renderer.domElement) {
                 camera.rotation.set(pitch, yaw, 0, 'YXZ');
                 const dir = new THREE.Vector3();
                 camera.getWorldDirection(dir);
                 dir.y = 0; dir.normalize();
                 const side = new THREE.Vector3().crossVectors(new THREE.Vector3(0,1,0), dir);
 
-                if (moveForward) camera.position.addScaledVector(dir, 0.1);
-                if (moveBackward) camera.position.addScaledVector(dir, -0.1);
-                if (moveLeft) camera.position.addScaledVector(side, 0.1);
-                if (moveRight) camera.position.addScaledVector(side, -0.1);
+                const speed = 0.12;
+                if (keys['KeyW']) camera.position.addScaledVector(dir, speed);
+                if (keys['KeyS']) camera.position.addScaledVector(dir, -speed);
+                if (keys['KeyA']) camera.position.addScaledVector(side, speed);
+                if (keys['KeyD']) camera.position.addScaledVector(side, -speed);
             }
             renderer.render(scene, camera);
         }
+        animate();
 
         document.getElementById('search-input').addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') loadGallery(e.target.value);
+            if(e.key === 'Enter') populateGallery(e.target.value);
         });
-
-        // Request Pointer Lock for "Real" FPS look
-        renderer.domElement.addEventListener('click', () => {
-            if(!isFocused) renderer.domElement.requestPointerLock();
-        });
-
-        animate();
     </script>
 </body>
 </html>
